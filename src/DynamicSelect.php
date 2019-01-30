@@ -13,12 +13,18 @@ class DynamicSelect extends Field
 
     public $component = 'dynamic-select';
 
+    public function resolve($resource, $attribute = null)
+    {
+        $this->extractDependentValues($resource);
+
+        return parent::resolve($resource, $attribute);
+    }
 
     public function meta()
     {
         $this->meta = parent::meta();
         return array_merge([
-            'options' => $this->getOptions(),
+            'options' => $this->getOptions($this->dependentValues),
             'dependsOn' => $this->getDependsOn(),
         ], $this->meta);
     }
