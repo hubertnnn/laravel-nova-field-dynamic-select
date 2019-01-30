@@ -877,42 +877,13 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
         };
     },
     created: function created() {
-        var _this = this;
-
         if (this.field.dependsOn) {
-            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, function () {
-                var _ref = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee(dependsOnValue) {
-                    return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee$(_context) {
-                        while (1) {
-                            switch (_context.prev = _context.next) {
-                                case 0:
-                                    _this.value = "";
-                                    Nova.$emit("nova-dynamic-select-changed-" + _this.field.attribute.toLowerCase(), {
-                                        value: _this.value,
-                                        field: _this.field
-                                    });
-                                    _context.next = 4;
-                                    return Nova.request().post("/nova-vendor/dynamic-select/options", {
-                                        resource: _this.resourceName,
-                                        attribute: _this.field.attribute,
-                                        depends: _this.getDependValues(dependsOnValue.value)
-                                    });
-
-                                case 4:
-                                    _this.options = _context.sent.data.options;
-
-                                case 5:
-                                case 'end':
-                                    return _context.stop();
-                            }
-                        }
-                    }, _callee, _this);
-                }));
-
-                return function (_x) {
-                    return _ref.apply(this, arguments);
-                };
-            }());
+            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
+        }
+    },
+    beforeDestroy: function beforeDestroy() {
+        if (this.field.dependsOn) {
+            Nova.$off("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
         }
     },
 
@@ -922,8 +893,15 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
          * Set the initial, internal value for the field.
          */
         setInitialValue: function setInitialValue() {
+            var _this = this;
+
             this.options = this.field.options;
-            this.value = this.field.value || '';
+
+            if (this.field.value) {
+                this.value = this.options.find(function (item) {
+                    return item['value'] === _this.field.value;
+                });
+            }
         },
 
 
@@ -950,10 +928,10 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
             return obj;
         },
         onChange: function () {
-            var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee2(row) {
-                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee2$(_context2) {
+            var _ref = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee(row) {
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee$(_context) {
                     while (1) {
-                        switch (_context2.prev = _context2.next) {
+                        switch (_context.prev = _context.next) {
                             case 0:
                                 Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
                                     value: row.value,
@@ -962,17 +940,60 @@ function _asyncToGenerator(fn) { return function () { var gen = fn.apply(this, a
 
                             case 1:
                             case 'end':
+                                return _context.stop();
+                        }
+                    }
+                }, _callee, this);
+            }));
+
+            function onChange(_x) {
+                return _ref.apply(this, arguments);
+            }
+
+            return onChange;
+        }(),
+        onDependencyChanged: function () {
+            var _ref2 = _asyncToGenerator( /*#__PURE__*/__WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.mark(function _callee2(dependsOnValue) {
+                var _this2 = this;
+
+                return __WEBPACK_IMPORTED_MODULE_0_babel_runtime_regenerator___default.a.wrap(function _callee2$(_context2) {
+                    while (1) {
+                        switch (_context2.prev = _context2.next) {
+                            case 0:
+                                Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
+                                    value: this.value,
+                                    field: this.field
+                                });
+                                _context2.next = 3;
+                                return Nova.request().post("/nova-vendor/dynamic-select/options", {
+                                    resource: this.resourceName,
+                                    attribute: this.field.attribute,
+                                    depends: this.getDependValues(dependsOnValue.value)
+                                });
+
+                            case 3:
+                                this.options = _context2.sent.data.options;
+
+
+                                if (this.value) {
+                                    this.value = this.options.find(function (item) {
+                                        return item['value'] === _this2.value['value'];
+                                    });
+                                }
+
+                            case 5:
+                            case 'end':
                                 return _context2.stop();
                         }
                     }
                 }, _callee2, this);
             }));
 
-            function onChange(_x2) {
+            function onDependencyChanged(_x2) {
                 return _ref2.apply(this, arguments);
             }
 
-            return onChange;
+            return onDependencyChanged;
         }()
     }
 });

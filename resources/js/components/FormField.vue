@@ -32,18 +32,13 @@ export default {
 
     created() {
         if (this.field.dependsOn) {
-            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, async dependsOnValue => {
-                this.value = "";
-                Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
-                    value: this.value,
-                    field: this.field
-                });
-                this.options = (await Nova.request().post("/nova-vendor/dynamic-select/options", {
-                    resource: this.resourceName,
-                    attribute: this.field.attribute,
-                    depends: this.getDependValues(dependsOnValue.value)
-                })).data.options;
-            });
+            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
+        }
+    },
+
+    beforeDestroy() {
+        if (this.field.dependsOn) {
+            Nova.$off("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
         }
     },
 
@@ -53,7 +48,10 @@ export default {
          */
         setInitialValue() {
             this.options = this.field.options;
-            this.value = this.field.value || ''
+
+            if(this.field.value) {
+                this.value = this.options.find(item => item['value'] === this.field.value);
+            }
         },
 
         /**
@@ -84,6 +82,22 @@ export default {
                 value: row.value,
                 field: this.field
             });
+        },
+
+        async onDependencyChanged(dependsOnValue) {
+            Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
+                value: this.value,
+                field: this.field
+            });
+            this.options = (await Nova.request().post("/nova-vendor/dynamic-select/options", {
+                resource: this.resourceName,
+                attribute: this.field.attribute,
+                depends: this.getDependValues(dependsOnValue.value)
+            })).data.options;
+
+            if(this.value) {
+                this.value = this.options.find(item => item['value'] === this.value['value']);
+            }
         }
     },
 }
