@@ -32,21 +32,13 @@ export default {
 
     created() {
         if (this.field.dependsOn) {
-            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, async dependsOnValue => {
-                Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
-                    value: this.value,
-                    field: this.field
-                });
-                this.options = (await Nova.request().post("/nova-vendor/dynamic-select/options", {
-                    resource: this.resourceName,
-                    attribute: this.field.attribute,
-                    depends: this.getDependValues(dependsOnValue.value)
-                })).data.options;
+            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
+        }
+    },
 
-                if(this.value) {
-                    this.value = this.options.find(item => item['value'] === this.value['value']);
-                }
-            });
+    beforeDestroy() {
+        if (this.field.dependsOn) {
+            Nova.$off("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
         }
     },
 
@@ -90,6 +82,22 @@ export default {
                 value: row.value,
                 field: this.field
             });
+        },
+
+        async onDependencyChanged(dependsOnValue) {
+            Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
+                value: this.value,
+                field: this.field
+            });
+            this.options = (await Nova.request().post("/nova-vendor/dynamic-select/options", {
+                resource: this.resourceName,
+                attribute: this.field.attribute,
+                depends: this.getDependValues(dependsOnValue.value)
+            })).data.options;
+
+            if(this.value) {
+                this.value = this.options.find(item => item['value'] === this.value['value']);
+            }
         }
     },
 }
