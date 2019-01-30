@@ -33,7 +33,6 @@ export default {
     created() {
         if (this.field.dependsOn) {
             Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, async dependsOnValue => {
-                this.value = "";
                 Nova.$emit("nova-dynamic-select-changed-" + this.field.attribute.toLowerCase(), {
                     value: this.value,
                     field: this.field
@@ -43,6 +42,10 @@ export default {
                     attribute: this.field.attribute,
                     depends: this.getDependValues(dependsOnValue.value)
                 })).data.options;
+
+                if(this.value) {
+                    this.value = this.options.find(item => item['value'] === this.value['value']);
+                }
             });
         }
     },
@@ -53,7 +56,10 @@ export default {
          */
         setInitialValue() {
             this.options = this.field.options;
-            this.value = this.field.value || ''
+
+            if(this.field.value) {
+                this.value = this.options.find(item => item['value'] === this.field.value);
+            }
         },
 
         /**
