@@ -16,7 +16,13 @@ trait DependsOnAnotherField
 
     protected function getDependsOn()
     {
-        return value($this->dependsOn);
+        $attributes = value($this->dependsOn);
+
+        if($attributes === null) {
+            return [];
+        }
+
+        return is_string($attributes) ? [$attributes] : $attributes;
     }
 
     protected function extractDependentValues($model)
@@ -24,10 +30,14 @@ trait DependsOnAnotherField
         if($this->dependsOn === null) {
             $this->dependentValues = [];
         } else {
-            $attribute = $this->getDependsOn();
-            $value = $this->resolveAttribute($model, $attribute);
+            $attributes = $this->getDependsOn();
 
-            $this->dependentValues = [$attribute => $value];
+            $values = [];
+            foreach ($attributes as $attribute) {
+                $values[$attribute] = $this->resolveAttribute($model, $attribute);
+            }
+
+            $this->dependentValues = $values;
         }
     }
 }

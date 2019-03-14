@@ -31,14 +31,19 @@ export default {
     },
 
     created() {
+        console.log()
         if (this.field.dependsOn) {
-            Nova.$on("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
+            this.field.dependsOn.forEach(function(item) {
+                Nova.$on("nova-dynamic-select-changed-" + item, this.onDependencyChanged);
+            }, this);
         }
     },
 
     beforeDestroy() {
         if (this.field.dependsOn) {
-            Nova.$off("nova-dynamic-select-changed-" + this.field.dependsOn, this.onDependencyChanged);
+            this.field.dependsOn.forEach(function(item) {
+                Nova.$off("nova-dynamic-select-changed-" + item, this.onDependencyChanged);
+            }, this);
         }
     },
 
@@ -70,11 +75,9 @@ export default {
             this.value = value
         },
 
-        getDependValues(value) {
-            var obj = {};
-            obj[this.field.dependsOn] = value; //TODO: Handle as array of multiple values
-
-            return obj
+        getDependValues(value, field) {
+            this.field.dependValues[field] = value;
+            return this.field.dependValues;
         },
 
         async onChange(row) {
@@ -92,7 +95,7 @@ export default {
             this.options = (await Nova.request().post("/nova-vendor/dynamic-select/options", {
                 resource: this.resourceName,
                 attribute: this.field.attribute,
-                depends: this.getDependValues(dependsOnValue.value)
+                depends: this.getDependValues(dependsOnValue.value, dependsOnValue.field.attribute.toLowerCase())
             })).data.options;
 
             if(this.value) {
